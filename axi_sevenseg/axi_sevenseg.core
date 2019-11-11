@@ -1,0 +1,71 @@
+CAPI=2:
+#The first line of all FuseSoC core description files must start with
+# CAPI=version. The current version is 2.
+
+#All cores are required to have a name written in the VLNV
+# (Vendor:Library:Name:Version) format. The only required field
+# is Name. In this example we're leaving Library empty. Version
+# is also unspecified which will cause it to be implicitly set to 0
+name : chipsalliance.org::axi_sevenseg
+
+#Filesets are used to group files with a similar purpose
+# Here we define three filesets. One for the RTL that implements
+# the controller, one for the wrapper that exposes an AXI interface and
+# one for the BFM that we will use in the verilator testbench
+# to check the output of the external interface
+filesets:
+  rtl:
+    files:
+      - wb_sevenseg.v
+    file_type : verilogSource
+
+  #All files must have an explicit file type. A default value for
+  # the whole fileset can be specified, but they can also be overridden
+  # on a per-file basis
+  axi_wrapper:
+    files:
+      - axi2wb.v
+      - axi_sevenseg.sv : {file_type : systemVerilogSource}
+    file_type : verilogSource
+
+  bfm:
+    files:
+      - sseg.c
+      #By setting the is_include_file attribute on files, FuseSoC will
+      #automatically add the directory containing the file to the include paths
+      - sseg.h : {is_include_file : true}
+    file_type : cSource
+
+#The targets are used to work with different aspects or uses of the core
+# Typically a core will consist of a target for doing tests at the core-level
+# and one that describes how to integrate it in a larger system.
+# Top-level cores might also have targets for different hardware, full-system
+# testing, subsystem testing etc.
+targets:
+
+  #The default target is a special target for FuseSoC. When this core is used
+  # as a dependency of another core, only the items found in the default target
+  # will be used. In this example it always exposes the RTL code, and if
+  # we're using verilator, it will also expose a BFM that can be used by the
+  # verilator testbench
+  default:
+    filesets : [rtl, axi_wrapper, "tool_verilator? (bfm)"]
+
+  #In this case there is no testbench for the core, but a lint target is defined
+  # to allow checking for potential code errors. In addition to describing which
+  # filesets to use, it also informs FuseSoC about the default tool to use,
+  # tool-specific settings and which module to use as top-level
+  lint:
+    default_tool : verilator
+    description : Run a linter on the core. Uses verilator by default
+    filesets : [rtl, axi_wrapper]
+    tools:
+      verilator:
+        mode : lint-only
+    toplevel : axi_sevenseg_wrapper
+
+parameters:
+  vcd:
+    datatype : bool
+    description : Produce a VCD trace
+    paramtype : plusarg
