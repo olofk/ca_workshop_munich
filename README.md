@@ -76,7 +76,13 @@ Normally, a core also contains a testbench. The 7-segment driver actually has a 
 
 Look at the existing targets for inspiration and consult the [CAPI2 reference](https://fusesoc.readthedocs.io/en/master/capi2.html) for available options and syntax.
 
-**Task 6:**: Once the new target is in place, run `fusesoc core show chipsalliance.org::axi_sevenseg` to see that the new target shows up and then run `fusesoc run --target=sim chipsalliance.org::axi_sevenseg` to build and run the testbench. We can also produce a VCD trace by running `fusesoc run --target=sim chipsalliance.org::axi_sevenseg --vcd`. The trace will show up in `build/chipsalliance.org__axi_sevenseg_0/sim-verilator/trace.vcd`
+**Task 6:** Once the new target is in place, run `fusesoc core show chipsalliance.org::axi_sevenseg` to see that the new target shows up and then run `fusesoc run --target=sim chipsalliance.org::axi_sevenseg` to build and run the testbench. We can also produce a VCD trace by running `fusesoc run --target=sim chipsalliance.org::axi_sevenseg --vcd`. The trace will show up in `build/chipsalliance.org__axi_sevenseg_0/sim-verilator/trace.vcd`
+
+## Run cocotb tests
+
+Before integrating the seven segment we want to run verification tests with cocotb. For that we have a model we compare it against (`axi_sevenseg/cocotb/model.py`). The model observes the output of the seven segment module. The actual test is controlled from `axi_sevenseg/cocotb/test_wb_sevenseg.py`.
+
+**Task 7:** Inspect the cocotb test and run it with `make`. It will use icarus verilog as simulator. It will run 20 tests of random numbers displayed. Increase the number of tests.
 
 # SoC integration
 
@@ -92,7 +98,7 @@ SweRVolf is an extendible and portable SoC built around the SweRV EH1 core. In i
 
 On hardware, the software to run is usually written to RAM through the debug interface, fetched from SPI Flash or if it's small enough, written directly into the boot ROM. In simulation, the easiest way to run a program is to write it directly into the RAM before the simulation starts.
 
-**Task 7:** Run a simulation of the SoC using the default program with `fusesoc run --target=sim swervolf`
+**Task 8:** Run a simulation of the SoC using the default program with `fusesoc run --target=sim swervolf`
 
 This should build the simulation model, run it, print a string and exit
 
@@ -135,13 +141,13 @@ str:
 
 As for the next step, we need to compile the assembler code into a program and convert it into verilog hex format that the simulator can read. SweRVolf has some useful Makefile targets for this.
 
-**Task 8:** Compile a custom program by entering `fusesoc_libraries/Cores-SweRVolf/sw` and run `make chips.vh`.
+**Task 9:** Compile a custom program by entering `fusesoc_libraries/Cores-SweRVolf/sw` and run `make chips.vh`.
 
 This will compile the assembler code, do the necessary conversion steps and provide us with a *chips.vh*  in a format suitable for loading into the simulated memory.
 
 For the last step we need to tell FuseSoC to use this file to preload the simulated RAM.
 
-**Task 9:** Go back to the workspace directory and run `fusesoc run --run --target=sim swervolf --ram_init_file=fusesoc_libraries/Cores-SweRVolf/sw/chips.vh` to run the newly compiled program.
+**Task 10:** Go back to the workspace directory and run `fusesoc run --run --target=sim swervolf --ram_init_file=fusesoc_libraries/Cores-SweRVolf/sw/chips.vh` to run the newly compiled program.
 
 Notice the added `--run` flag used when calling FuseSoC. This tells FuseSoC to skip the *setup* and *build* steps and just run the model that has been already compiled. Since we have only changed the software and nothing on the RTL side, we don't need to spend time rebuilding the simulation model.
 
@@ -151,7 +157,7 @@ That's all we need to know for now. Let's start the work to integrate the 7-segm
 
 The first step is to add our 7-segment driver as a dependency of SweRVolf.
 
-**Task 10:** Open `fusesoc_libraries/Cores-SweRVolf/swervolf.core` and add `chipsalliance.org::axi_sevenseg` as a dependency of the `core` fileset.
+**Task 11:** Open `fusesoc_libraries/Cores-SweRVolf/swervolf.core` and add `chipsalliance.org::axi_sevenseg` as a dependency of the `core` fileset.
 
 By adding the 7-segment driver as a dependency, FuseSoC will include its files when building the SoC. It would also pick up any extra tool options, parameters, generators and other things exposed by the 7-segment driver's *default* target.
 
@@ -159,7 +165,7 @@ By adding the 7-segment driver as a dependency, FuseSoC will include its files w
 
 Adding the dependency will however not automatically make any RTL changes in the SoC toplevel. We will still need to instantiate the core, hook it up to the AXI interconnect and expose the external pins. FuseSoC will still help us a bit with this work though. As can be seen in the block diagram above, we need to add it to the SweRVolf core module.
 
-**Task 11:** Instantiate the AXI 7-segment wrapper in the SweRVolf core by adding the following to `fusesoc_libraries/Cores-SweRVolf/rtl/swervolf_core.v`
+**Task 12:** Instantiate the AXI 7-segment wrapper in the SweRVolf core by adding the following to `fusesoc_libraries/Cores-SweRVolf/rtl/swervolf_core.v`
 
 ```
    axi_sevenseg_wrapper
@@ -215,7 +221,7 @@ This is because a FuseSoC feature called a *generator* is used to create, or gen
 
 The generator *axi_intercon_gen* itself is defined in another core description file, which allows it to be included into any project that needs to generate an AXI interconnect by just adding it as a dependency and define a section in the top-level core file. To find out more about axi_intercon_gen, run `fusesoc gen show axi_intercon_gen`. This will print out some usage information and in which core the generator is defined. `fusesoc gen list` will list all generators that FuseSoC has found
 
-**Task 12:** Add a new slave port called sevenseg with base address `0x90000000` and size `0x1000`
+**Task 13:** Add a new slave port called sevenseg with base address `0x90000000` and size `0x1000`
 
 The inclusion of the new 7-segment controller is now finished on the RTL level. What we need to do now is to write software to control it and add the bits to the testbench to check the result.
 
