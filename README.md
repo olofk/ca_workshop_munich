@@ -1,3 +1,27 @@
+# Setting up docker image
+
+For your convenience there is a docker image that contains the tools. You can either build it yourself or download it [here (1.3GB)](https://syncandshare.lrz.de/dl/fiVDUFw67zvz7trnsVLD9LiR/ca_workshop_munich.tar.gz).
+
+To build yourself, run
+
+```
+docker build -t ca_workshop_munich
+```
+
+Or load it from the downloaded tar.gz:
+
+```
+docker load < ca_workshop_munich.tar.gz
+```
+
+You can then run the commands from below inside the docker machine after entering it with
+
+```
+docker run -v $PWD/axi_sevenseg:/workspace/axi_sevenseg -ti ca_workshop_munich
+```
+
+# Introduction
+
 The SweRVolf SoC was built to be modified and extended to fit different applications and hardware.
 
 In this tutorial we will add a new peripheral controller for the 7-segment display found on the Nexys A7 board so that it's possible to control from software.
