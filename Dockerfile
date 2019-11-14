@@ -39,9 +39,7 @@ RUN fusesoc library add swervolf https://github.com/chipsalliance/Cores-SweRVolf
 
 RUN wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.10.0/zephyr-sdk-0.10.0-setup.run && \
     sh zephyr-sdk-0.10.0-setup.run --quiet -- -d /opt/zephyr-sdk && \
-    rm zephyr-sdk-0.10.0-setup.run
-
-RUN rm -rf \
+    rm zephyr-sdk-0.10.0-setup.run && rm -rf \
     /opt/zephyr-sdk/arc-zephyr-elf \
     /opt/zephyr-sdk/i586-zephyr-elfiamcu \
     /opt/zephyr-sdk/xtensa-zephyr-elf \
