@@ -1,4 +1,5 @@
 module wb_sevenseg
+  #(parameter CNT_VALUE=15'h7fff)
   (
    input wire 	      i_wb_clk,
    input wire 	      i_wb_rst,
@@ -27,14 +28,17 @@ module wb_sevenseg
       o_an <= ~an_r;
       o_wb_ack <= i_wb_cyc & i_wb_stb & !o_wb_ack;
       if (i_wb_cyc & i_wb_stb & i_wb_we) begin
-	 if (i_wb_sel[0]) word[7:0]   <= i_wb_dat[7:0];
-	 if (i_wb_sel[1]) word[15:8]  <= i_wb_dat[15:8];
-	 if (i_wb_sel[2]) word[23:16] <= i_wb_dat[23:16];
-	 if (i_wb_sel[3]) word[31:24] <= i_wb_dat[31:24];
+         if (i_wb_sel[0]) word[7:0]   <= i_wb_dat[7:0];
+         if (i_wb_sel[1]) word[15:8]  <= i_wb_dat[15:8];
+         if (i_wb_sel[2]) word[23:16] <= i_wb_dat[23:16];
+         if (i_wb_sel[3]) word[31:24] <= i_wb_dat[31:24];
       end
-      cnt <= cnt + 1;
-      if (cnt == 15'd0)
-	an <= {an[0],an[7:1]};
+      if (cnt == 15'd0) begin
+         an <= {an[0],an[7:1]};
+         cnt <= CNT_VALUE;
+      end else begin
+         cnt <= cnt - 1;
+      end
       cur_nibble <= (word[3:0]   & {4{an[0]}}) |
 		    (word[7:4]   & {4{an[1]}}) |
 		    (word[11:8]  & {4{an[2]}}) |
@@ -63,10 +67,17 @@ module wb_sevenseg
 	default: o_ca <= 7'b1001001;
       endcase
       if (i_wb_rst) begin
-	 an <= 8'b10000000;
-	 cnt <= 15'd0;
-	 o_wb_ack <= 1'b0;
+         an <= 8'b10000000;
+         cnt <= CNT_VALUE;
+         o_wb_ack <= 1'b0;
       end
    end
 
+`ifdef WAVEFORM
+  // Dump waves
+  initial begin
+    $dumpfile("dump.vcd");
+    $dumpvars(1, wb_sevenseg);
+  end
+`endif
 endmodule
