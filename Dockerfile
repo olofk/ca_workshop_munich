@@ -11,8 +11,10 @@ RUN apt-get update && apt-get --no-install-recommends install -y \
     g++ \
     git \
     gperf \
+    iverilog \
     make \
     ninja-build \
+    python3-dev \
     python3-pip \
     python3-pyelftools \
     python3-setuptools \
@@ -27,7 +29,7 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.7 1
 #wget http://http.us.debian.org/debian/pool/main/v/verilator/verilator_4.020-1_amd64.deb
 
 #Install FuseSoC
-RUN pip3 install fusesoc
+RUN pip3 install fusesoc cocotb
 
 WORKDIR /workspace
 
